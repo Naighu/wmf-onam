@@ -5,7 +5,10 @@ const gallerySchema = new Schema({
     photos: [
         { type: String }
     ],
-    likes: {type: Number, default: 0}
+    likes: {type: Number, default: 0},
+    liked: [{
+        type: String
+    }]
 })
 
 const Gallery = mongoose.model('Gallery', gallerySchema)
