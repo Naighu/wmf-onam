@@ -5,8 +5,10 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { Readable } from "node:stream";
 
 export const s3 = new S3Client({
-  region: process.env.AWS_REGION || "sydney"
+  region: process.env.AWS_REGION || "ap-southeast-2"
 });
+
+console.log("Connected to S3");
 
 export async function listObjectsInS3(bucket: string, prefix = "") {
   const out = await s3.send(new ListObjectsV2Command({ Bucket: bucket, Prefix: prefix,Delimiter: "/" }));
@@ -20,7 +22,8 @@ export async function getObjectStream(bucket: string, key: string) {
 }
 
 export async function putObject(bucket: string, key: string, body: Buffer | Readable, contentType?: string) {
-  await s3.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: body, ContentType: contentType }));
+
+ await s3.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: body, ContentType: contentType }));
 }
 
 export async function removeObject(bucket: string, key: string) {

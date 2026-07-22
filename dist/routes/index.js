@@ -4,5 +4,7 @@ const express_1 = require("express");
 const main_controller_1 = require("../controllers/main_controller");
 const router = (0, express_1.Router)();
 router.get("/user", main_controller_1.getUser);
+router.post("/upload", main_controller_1.uploadGallery);
 router.get("/gallery", main_controller_1.getGalleryImages);
+router.post("/like", main_controller_1.updateLikesCount);
 exports.default = router;

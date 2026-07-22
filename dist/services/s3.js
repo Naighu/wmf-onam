@@ -12,8 +12,9 @@ const client_s3_1 = require("@aws-sdk/client-s3");
 const client_s3_2 = require("@aws-sdk/client-s3");
 const s3_request_presigner_1 = require("@aws-sdk/s3-request-presigner");
 exports.s3 = new client_s3_1.S3Client({
-    region: process.env.AWS_REGION || "sydney"
+    region: process.env.AWS_REGION || "ap-southeast-2"
 });
+console.log("Connected to S3");
 async function listObjectsInS3(bucket, prefix = "") {
     const out = await exports.s3.send(new client_s3_1.ListObjectsV2Command({ Bucket: bucket, Prefix: prefix, Delimiter: "/" }));
     return out;

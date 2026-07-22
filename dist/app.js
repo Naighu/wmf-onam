@@ -13,10 +13,11 @@ let isConnected = false;
 async function connectDB() {
     if (isConnected)
         return;
-    await mongoose_1.default.connect(process.env.MONGODB_URI);
+    await mongoose_1.default.connect(process.env.MONGODB_URL);
     isConnected = true;
     console.log("MongoDB connected");
 }
+connectDB();
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());

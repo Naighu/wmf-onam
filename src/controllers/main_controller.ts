@@ -1,10 +1,13 @@
-import { raw, Request, Response } from "express";
-
+import { Request, Response } from "express";
+const multiparty = require('multiparty');
 import { sendOk } from "../utils/respond";
 import { AppError } from "../types/error.type";
 import User from "../model/user"
 import Gallery from "../model/gallery"
-
+import { produceMessageToQueue } from "../services/rabbitmq";
+import fs from "fs";
+import path from "path";
+import { randomUUID } from "crypto";
 
 export async function getUser(req: Request, res: Response) {
     try {
@@ -101,6 +104,63 @@ export async function updateLikesCount(req: Request, res: Response) {
 
         return sendOk(res, "Done")
 
+
+    } catch (err: any) {
+        if (err instanceof AppError) {
+            throw err;
+        } else {
+            throw new AppError("INTERNAL", err, undefined);
+        }
+    }
+}
+
+
+export async function uploadGallery(req: Request, res: Response) {
+    try {
+        const form = new multiparty.Form();
+        form.parse(req, async (error: any, fields: any, files: any) => {
+            const first_name = fields.first_name?.[0];
+            const last_name = fields.last_name?.[0];
+            const suburb = fields.suburb?.[0];
+            const email = fields.email?.[0];
+            const mobile = fields.mobile?.[0];
+
+            const paths = []
+
+            let user = await User.findOne({
+                email, mobile
+            })
+
+            if (!user) {
+                user = await User.create({
+                    first_name,
+                    last_name,
+                    suburb,
+                    email,
+                    mobile
+                })
+            }
+
+            const uploadDir = path.join(process.cwd(), "uploads");
+            await fs.promises.mkdir(uploadDir, { recursive: true });
+
+            for (const file of files.files) {
+                const destination = path.join(uploadDir, randomUUID() +"." + `${file.originalFilename.split(".").pop()}`);
+                await fs.promises.copyFile(file.path, destination);
+                paths.push(destination)
+            }
+            const data = {
+                user_id: user._id,
+                paths: paths
+            }
+
+
+            console.log(data);
+            await produceMessageToQueue("upload-s3", JSON.stringify(data))
+
+
+            return sendOk(res, "Added to Queue")
+        })
 
     } catch (err: any) {
         if (err instanceof AppError) {

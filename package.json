@@ -18,10 +18,12 @@
     "@aws-sdk/s3-request-presigner": "^3.1090.0",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
+    "amqplib": "^2.0.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "mongoose": "^9.7.4",
+    "multiparty": "^4.3.0",
     "serverless-http": "^4.0.0",
     "validator": "^13.15.35"
   },

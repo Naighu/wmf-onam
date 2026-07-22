@@ -39,7 +39,10 @@ const gallerySchema = new mongoose_1.Schema({
     photos: [
         { type: String }
     ],
-    likes: { type: Number, default: 0 }
+    likes: { type: Number, default: 0 },
+    liked: [{
+            type: String
+        }]
 });
 const Gallery = mongoose_1.default.model('Gallery', gallerySchema);
 exports.default = Gallery;
