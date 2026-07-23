@@ -8,6 +8,7 @@ import { produceMessageToQueue } from "../services/rabbitmq";
 import fs from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
+import Participant from "../model/participant";
 
 export async function getUser(req: Request, res: Response) {
     try {
@@ -145,7 +146,7 @@ export async function uploadGallery(req: Request, res: Response) {
             await fs.promises.mkdir(uploadDir, { recursive: true });
 
             for (const file of files.files) {
-                const destination = path.join(uploadDir, randomUUID() +"." + `${file.originalFilename.split(".").pop()}`);
+                const destination = path.join(uploadDir, randomUUID() + "." + `${file.originalFilename.split(".").pop()}`);
                 await fs.promises.copyFile(file.path, destination);
                 paths.push(destination)
             }
@@ -163,6 +164,96 @@ export async function uploadGallery(req: Request, res: Response) {
         })
 
     } catch (err: any) {
+        if (err instanceof AppError) {
+            throw err;
+        } else {
+            throw new AppError("INTERNAL", err, undefined);
+        }
+    }
+}
+
+
+
+
+export async function createParticipant(req: Request, res: Response) {
+
+    try {
+        const { user_id, category } = req.body
+
+        const participant = await Participant.create({
+            user: user_id,
+            category: category
+        })
+
+        return sendOk(res, participant)
+    } catch (err) {
+        if (err instanceof AppError) {
+            throw err;
+        } else {
+            throw new AppError("INTERNAL", err, undefined);
+        }
+    }
+}
+
+export async function updateParticipantMarks(req: Request, res: Response) {
+    try {
+
+        const marks = req.body.marks;
+        const token = req.body.token;
+        const participant_id = req.body.participant_id
+
+
+        const participant = await Participant.findById(participant_id);
+        if (!participant) {
+            throw new AppError("NOT_FOUND", "Could not find the participant", undefined);
+        }
+
+        const alreadyMarked = participant.marked_by.includes(token)
+
+
+        if (alreadyMarked) {
+            throw new AppError("VALIDATION_ERROR", "Already Marked", undefined);
+
+        } else {
+            await Participant.updateOne({ _id: participant_id }, {
+                $inc: {
+                    total_marks: marks
+                },
+                $push: {
+                    marked_by: token
+                }
+            })
+        }
+
+        return sendOk(res, "Successfully marked the participant")
+
+
+    } catch (err: any) {
+        if (err instanceof AppError) {
+            throw err;
+        } else {
+            throw new AppError("INTERNAL", err, undefined);
+        }
+    }
+}
+
+export async function makeParticipantLive(req: Request, res: Response) {
+
+    try {
+        
+        const participant_id  = req.params.id
+
+        const participant = await Participant.findById(participant_id);
+
+        if (!participant) {
+            throw new AppError("NOT_FOUND", "Could not find the participant", undefined);
+        }
+
+
+        await produceMessageToQueue("competition-live", JSON.stringify(participant))
+
+        return sendOk(res, participant)
+    } catch (err) {
         if (err instanceof AppError) {
             throw err;
         } else {
