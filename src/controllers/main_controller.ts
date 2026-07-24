@@ -16,7 +16,15 @@ export async function getUser(req: Request, res: Response) {
         const id = req.query.id;
         if (id) {
             const user = await User.findById(id)
-            return sendOk(res, user);
+            if (!user) {
+                throw new AppError("NOT_FOUND", "Could not find the user", undefined);
+
+            }
+            const gallery = await Gallery.findOne({ user: user!._id })
+            return sendOk(res, {
+                user: user,
+                gallery: gallery
+            });
 
         }
 
@@ -24,12 +32,28 @@ export async function getUser(req: Request, res: Response) {
 
         if (mobile) {
             const user = await User.findOne({ mobile: mobile as string })
-            return sendOk(res, user);
+            if (!user) {
+                throw new AppError("NOT_FOUND", "Could not find the user", undefined);
+
+            }
+            const gallery = await Gallery.findOne({ user: user!._id })
+            return sendOk(res, {
+                user: user,
+                gallery: gallery
+            });
         }
 
         const email = req.query.email;
         const user = await User.findOne({ email: email as string })
-        return sendOk(res, user);
+        if (!user) {
+            throw new AppError("NOT_FOUND", "Could not find the user", undefined);
+
+        }
+        const gallery = await Gallery.findOne({ user: user!._id })
+        return sendOk(res, {
+            user: user,
+            gallery: gallery
+        });
 
 
     } catch (err: any) {
@@ -178,12 +202,23 @@ export async function uploadGallery(req: Request, res: Response) {
 export async function createParticipant(req: Request, res: Response) {
 
     try {
-        const { user_id, category } = req.body
+        const { mobile, category, thumbnail, name } = req.body
+
+        const user = await User.findOne({ mobile: mobile })
+
+        if (!user) {
+            throw new AppError("NOT_FOUND", "Could not find the user", undefined);
+        }
+
+
 
         const participant = await Participant.create({
-            user: user_id,
-            category: category
+            user: user._id,
+            name: name,
+            category: category,
+            thumbnail: thumbnail
         })
+
 
         return sendOk(res, participant)
     } catch (err) {
@@ -237,11 +272,25 @@ export async function updateParticipantMarks(req: Request, res: Response) {
     }
 }
 
+export async function listParticipants(req: Request, res: Response) {
+    try {
+        const participants = await Participant.find({});
+        return sendOk(res, participants);
+    } catch (err) {
+        if (err instanceof AppError) {
+            throw err;
+        } else {
+            throw new AppError("INTERNAL", err, undefined);
+        }
+    }
+
+}
 export async function makeParticipantLive(req: Request, res: Response) {
 
     try {
-        
-        const participant_id  = req.params.id
+
+        const participant_id = req.params.id
+        const live = req.query.live === "true";
 
         const participant = await Participant.findById(participant_id);
 
@@ -249,8 +298,12 @@ export async function makeParticipantLive(req: Request, res: Response) {
             throw new AppError("NOT_FOUND", "Could not find the participant", undefined);
         }
 
+        participant.is_live = live;
+        if (participant.is_live) {
+            await produceMessageToQueue("competition-live", JSON.stringify(participant))
+        }
 
-        await produceMessageToQueue("competition-live", JSON.stringify(participant))
+        await participant.save()
 
         return sendOk(res, participant)
     } catch (err) {
