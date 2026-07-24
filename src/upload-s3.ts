@@ -1,15 +1,24 @@
 import { connectRabbitMQ } from "./services/rabbitmq";
-import {  putObject } from "./services/s3";
+import { putObject } from "./services/s3";
 import { promises, readFileSync } from "fs";
 import { randomUUID } from "crypto";
 import { connectDB } from "./app";
 import Gallery from "./model/gallery";
-const consumeMessages = async (queue: string) => {
+import { Channel } from "amqplib";
+
+const connect = async () => {
     const { channel } = await connectRabbitMQ();
+    return channel
+}
+
+
+const upload_s3_queue = async (channel: Channel) => {
+    const queue = "upload-s3"
+
     await channel.assertQueue(queue, { durable: true });
     console.log(`Waiting for messages in ${queue}...`);
     await connectDB()
-   
+
     channel.consume(queue, async (message) => {
         if (message) {
             try {
@@ -44,16 +53,22 @@ const consumeMessages = async (queue: string) => {
                 }
 
                 //Cleanup the images from storage
-                for(const path of data['paths']){
+                for (const path of data['paths']) {
                     await promises.rm(path)
                 }
                 channel.ack(message); // Acknowledge message
             } catch (e) {
                 console.log(e);
- channel.ack(message);
+                channel.ack(message);
             }
         }
     });
 };
 
-consumeMessages('upload-s3');
+
+
+
+connect().then((channel) => {
+    upload_s3_queue(channel);
+
+})

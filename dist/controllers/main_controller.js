@@ -7,6 +7,10 @@ exports.getUser = getUser;
 exports.getGalleryImages = getGalleryImages;
 exports.updateLikesCount = updateLikesCount;
 exports.uploadGallery = uploadGallery;
+exports.createParticipant = createParticipant;
+exports.updateParticipantMarks = updateParticipantMarks;
+exports.listParticipants = listParticipants;
+exports.makeParticipantLive = makeParticipantLive;
 const multiparty = require('multiparty');
 const respond_1 = require("../utils/respond");
 const error_type_1 = require("../types/error.type");
@@ -16,21 +20,43 @@ const rabbitmq_1 = require("../services/rabbitmq");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const crypto_1 = require("crypto");
+const participant_1 = __importDefault(require("../model/participant"));
 async function getUser(req, res) {
     try {
         const id = req.query.id;
         if (id) {
             const user = await user_1.default.findById(id);
-            return (0, respond_1.sendOk)(res, user);
+            if (!user) {
+                throw new error_type_1.AppError("NOT_FOUND", "Could not find the user", undefined);
+            }
+            const gallery = await gallery_1.default.findOne({ user: user._id });
+            return (0, respond_1.sendOk)(res, {
+                user: user,
+                gallery: gallery
+            });
         }
         const mobile = req.query.mobile;
         if (mobile) {
             const user = await user_1.default.findOne({ mobile: mobile });
-            return (0, respond_1.sendOk)(res, user);
+            if (!user) {
+                throw new error_type_1.AppError("NOT_FOUND", "Could not find the user", undefined);
+            }
+            const gallery = await gallery_1.default.findOne({ user: user._id });
+            return (0, respond_1.sendOk)(res, {
+                user: user,
+                gallery: gallery
+            });
         }
         const email = req.query.email;
         const user = await user_1.default.findOne({ email: email });
-        return (0, respond_1.sendOk)(res, user);
+        if (!user) {
+            throw new error_type_1.AppError("NOT_FOUND", "Could not find the user", undefined);
+        }
+        const gallery = await gallery_1.default.findOne({ user: user._id });
+        return (0, respond_1.sendOk)(res, {
+            user: user,
+            gallery: gallery
+        });
     }
     catch (err) {
         if (err instanceof error_type_1.AppError) {
@@ -142,6 +168,102 @@ async function uploadGallery(req, res) {
             await (0, rabbitmq_1.produceMessageToQueue)("upload-s3", JSON.stringify(data));
             return (0, respond_1.sendOk)(res, "Added to Queue");
         });
+    }
+    catch (err) {
+        if (err instanceof error_type_1.AppError) {
+            throw err;
+        }
+        else {
+            throw new error_type_1.AppError("INTERNAL", err, undefined);
+        }
+    }
+}
+async function createParticipant(req, res) {
+    try {
+        const { mobile, category, thumbnail, name } = req.body;
+        const user = await user_1.default.findOne({ mobile: mobile });
+        if (!user) {
+            throw new error_type_1.AppError("NOT_FOUND", "Could not find the user", undefined);
+        }
+        const participant = await participant_1.default.create({
+            user: user._id,
+            name: name,
+            category: category,
+            thumbnail: thumbnail
+        });
+        return (0, respond_1.sendOk)(res, participant);
+    }
+    catch (err) {
+        if (err instanceof error_type_1.AppError) {
+            throw err;
+        }
+        else {
+            throw new error_type_1.AppError("INTERNAL", err, undefined);
+        }
+    }
+}
+async function updateParticipantMarks(req, res) {
+    try {
+        const marks = req.body.marks;
+        const token = req.body.token;
+        const participant_id = req.body.participant_id;
+        const participant = await participant_1.default.findById(participant_id);
+        if (!participant) {
+            throw new error_type_1.AppError("NOT_FOUND", "Could not find the participant", undefined);
+        }
+        const alreadyMarked = participant.marked_by.includes(token);
+        if (alreadyMarked) {
+            throw new error_type_1.AppError("VALIDATION_ERROR", "Already Marked", undefined);
+        }
+        else {
+            await participant_1.default.updateOne({ _id: participant_id }, {
+                $inc: {
+                    total_marks: marks
+                },
+                $push: {
+                    marked_by: token
+                }
+            });
+        }
+        return (0, respond_1.sendOk)(res, "Successfully marked the participant");
+    }
+    catch (err) {
+        if (err instanceof error_type_1.AppError) {
+            throw err;
+        }
+        else {
+            throw new error_type_1.AppError("INTERNAL", err, undefined);
+        }
+    }
+}
+async function listParticipants(req, res) {
+    try {
+        const participants = await participant_1.default.find({});
+        return (0, respond_1.sendOk)(res, participants);
+    }
+    catch (err) {
+        if (err instanceof error_type_1.AppError) {
+            throw err;
+        }
+        else {
+            throw new error_type_1.AppError("INTERNAL", err, undefined);
+        }
+    }
+}
+async function makeParticipantLive(req, res) {
+    try {
+        const participant_id = req.params.id;
+        const live = req.query.live === "true";
+        const participant = await participant_1.default.findById(participant_id);
+        if (!participant) {
+            throw new error_type_1.AppError("NOT_FOUND", "Could not find the participant", undefined);
+        }
+        participant.is_live = live;
+        if (participant.is_live) {
+            await (0, rabbitmq_1.produceMessageToQueue)("competition-live", JSON.stringify(participant));
+        }
+        await participant.save();
+        return (0, respond_1.sendOk)(res, participant);
     }
     catch (err) {
         if (err instanceof error_type_1.AppError) {

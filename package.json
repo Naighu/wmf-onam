@@ -25,11 +25,14 @@
     "mongoose": "^9.7.4",
     "multiparty": "^4.3.0",
     "serverless-http": "^4.0.0",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
     "validator": "^13.15.35"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/socket.io": "^3.0.1",
     "@types/validator": "^13.15.10",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.2"

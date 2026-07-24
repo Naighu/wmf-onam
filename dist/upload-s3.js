@@ -9,8 +9,12 @@ const fs_1 = require("fs");
 const crypto_1 = require("crypto");
 const app_1 = require("./app");
 const gallery_1 = __importDefault(require("./model/gallery"));
-const consumeMessages = async (queue) => {
+const connect = async () => {
     const { channel } = await (0, rabbitmq_1.connectRabbitMQ)();
+    return channel;
+};
+const upload_s3_queue = async (channel) => {
+    const queue = "upload-s3";
     await channel.assertQueue(queue, { durable: true });
     console.log(`Waiting for messages in ${queue}...`);
     await (0, app_1.connectDB)();
@@ -56,4 +60,6 @@ const consumeMessages = async (queue) => {
         }
     });
 };
-consumeMessages('upload-s3');
+connect().then((channel) => {
+    upload_s3_queue(channel);
+});

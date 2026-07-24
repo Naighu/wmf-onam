@@ -2,9 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const main_controller_1 = require("../controllers/main_controller");
+const is_admin_1 = require("../middlewares/is_admin");
 const router = (0, express_1.Router)();
 router.get("/user", main_controller_1.getUser);
 router.post("/upload", main_controller_1.uploadGallery);
 router.get("/gallery", main_controller_1.getGalleryImages);
 router.post("/like", main_controller_1.updateLikesCount);
+router.post("/participant", is_admin_1.isAdmin, main_controller_1.createParticipant);
+router.get("/participant", is_admin_1.isAdmin, main_controller_1.listParticipants);
+router.post("/marks", main_controller_1.updateParticipantMarks);
+router.get("/make-live/:id", is_admin_1.isAdmin, main_controller_1.makeParticipantLive);
 exports.default = router;
