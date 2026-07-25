@@ -57,11 +57,34 @@ async function consumeLiveQueue(channel: Channel) {
   });
 }
 
+async function consumePreviewScreenQueue(channel: Channel) {
+  const queue = "preview-screen";
+
+  await channel.assertQueue(queue, {
+    durable: true,
+  });
+
+  console.log(`Waiting for messages in ${queue}...`);
+
+  channel.consume(queue, (msg) => {
+    if (!msg) return;
+
+    const data = msg.content.toString();
+
+    console.log("Received:", data);
+
+    io.emit(queue, data);
+
+    channel.ack(msg);
+  });
+}
+
 async function start() {
   try {
     const channel = await connect();
 
     await consumeLiveQueue(channel);
+    await consumePreviewScreenQueue(channel)
 
     httpServer.listen(PORT, () => {
       console.log(`🚀 Socket.IO server running on port ${PORT}`);
