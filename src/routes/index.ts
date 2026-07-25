@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createParticipant, getGalleryImages, getUser, listParticipants, makeParticipantLive, updateLikesCount, updateParticipantMarks, uploadGallery } from "../controllers/main_controller";
+import { createParticipant, getGalleryImages, getUser, listParticipants, makeParticipantLive, previewScreen, updateLikesCount, updateParticipantMarks, uploadGallery } from "../controllers/main_controller";
 import { isAdmin } from "../middlewares/is_admin";
 
 const router = Router();
@@ -13,6 +13,7 @@ router.post("/participant",isAdmin, createParticipant)
 router.get("/participant",isAdmin, listParticipants)
 router.post("/marks", updateParticipantMarks)
 router.get("/make-live/:id",isAdmin,makeParticipantLive)
+router.post("/preview-screen", isAdmin,previewScreen)
 
 
 export default router;
