@@ -318,19 +318,7 @@ export async function makeParticipantLive(req: Request, res: Response) {
 
 export async function previewScreen(req: Request, res: Response) {
     try {
-
-        const { participant_id, template, params } = req.body
-        const participant = await Participant.findById(participant_id);
-        if (!participant) {
-            throw new AppError("NOT_FOUND", "Could not find the participant", undefined);
-        }
-
-        await produceMessageToQueue("preview-screen", JSON.stringify({
-            participant,
-            template,
-            params
-        }))
-
+        await produceMessageToQueue("preview-screen", JSON.stringify(req.body))
     } catch (err) {
         if (err instanceof AppError) {
             throw err;
