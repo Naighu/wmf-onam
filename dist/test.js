@@ -5,6 +5,6 @@ const socket = (0, socket_io_client_1.io)("http://32.236.187.223:4019");
 socket.on("connect", () => {
     console.log("Connected:", socket.id);
 });
-socket.on("competition-live", (data) => {
+socket.on("preview-screen", (data) => {
     console.log(data);
 });

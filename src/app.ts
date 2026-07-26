@@ -4,6 +4,7 @@ import cors from "cors";
 import { notFound, errorHandler } from "./middlewares/error_handler";
 import routes from "./routes";
 import mongoose from "mongoose";
+import { connectRabbitMQ } from "./services/rabbitmq";
 
 
 
@@ -18,6 +19,8 @@ export async function connectDB() {
   console.log("MongoDB connected");
 }
 connectDB();
+
+connectRabbitMQ()
 
 const app = express();
 

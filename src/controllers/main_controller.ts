@@ -318,7 +318,10 @@ export async function makeParticipantLive(req: Request, res: Response) {
 
 export async function previewScreen(req: Request, res: Response) {
     try {
+        console.log(req.body);
+        
         await produceMessageToQueue("preview-screen", JSON.stringify(req.body))
+        return sendOk(res, "Added to Queue")
     } catch (err) {
         if (err instanceof AppError) {
             throw err;

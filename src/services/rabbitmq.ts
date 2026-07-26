@@ -2,10 +2,13 @@ import amqp from 'amqplib';
 import dotenv from 'dotenv';
 dotenv.config();
 
+let channel:amqp.Channel;
+
+
 export const connectRabbitMQ = async () => {
     try {
         const connection = await amqp.connect(process.env.AMQPURL!);
-        const channel = await connection.createChannel();
+        channel = await connection.createChannel();
         console.log('Connected to RabbitMQ');
         return { connection, channel };
     } catch (error) {
@@ -16,7 +19,6 @@ export const connectRabbitMQ = async () => {
 
 
 export const produceMessageToQueue = async (queue: string, message: string) => {
-    const { channel } = await connectRabbitMQ();
     await channel.assertQueue(queue);
     channel.sendToQueue(queue, Buffer.from(message));
     console.log(`Message sent to ${queue}:`, message);

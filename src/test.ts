@@ -6,6 +6,6 @@ socket.on("connect", () => {
   console.log("Connected:", socket.id);
 });
 
-socket.on("competition-live", (data) => {
+socket.on("preview-screen", (data) => {
   console.log(data);
 });
