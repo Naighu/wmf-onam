@@ -94,10 +94,10 @@ async function consumePreviewScreenQueue(channel: Channel) {
 
 async function start() {
   try {
-    // const channel = await connect();
+    const channel = await connect();
     await connectDB()
-    // await consumeLiveQueue(channel);
-    // await consumePreviewScreenQueue(channel)
+    await consumeLiveQueue(channel);
+    await consumePreviewScreenQueue(channel)
 
     httpServer.listen(PORT, () => {
       console.log(`🚀 Socket.IO server running on port ${PORT}`);
