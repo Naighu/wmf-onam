@@ -265,7 +265,7 @@ async function makeParticipantLive(req, res) {
         }
         participant.is_live = live;
         if (participant.is_live) {
-            await (0, rabbitmq_1.produceMessageToQueue)("competition-live", JSON.stringify(participant));
+            await (0, rabbitmq_1.produceMessageToQueue)("competition-live", JSON.stringify([participant]));
         }
         await participant.save();
         return (0, respond_1.sendOk)(res, participant);

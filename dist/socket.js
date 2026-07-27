@@ -75,10 +75,10 @@ async function consumePreviewScreenQueue(channel) {
 }
 async function start() {
     try {
-        // const channel = await connect();
+        const channel = await connect();
         await (0, mongodb_1.connectDB)();
-        // await consumeLiveQueue(channel);
-        // await consumePreviewScreenQueue(channel)
+        await consumeLiveQueue(channel);
+        await consumePreviewScreenQueue(channel);
         httpServer.listen(PORT, () => {
             console.log(`🚀 Socket.IO server running on port ${PORT}`);
         });
