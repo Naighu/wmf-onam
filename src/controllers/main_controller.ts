@@ -258,6 +258,11 @@ export async function updateParticipantMarks(req: Request, res: Response) {
                     marked_by: token
                 }
             })
+
+            await produceMessageToQueue("preview-screen", JSON.stringify({
+                type: "mark",
+                mark: marks
+            }))
         }
 
         return sendOk(res, "Successfully marked the participant")
@@ -319,7 +324,7 @@ export async function makeParticipantLive(req: Request, res: Response) {
 export async function previewScreen(req: Request, res: Response) {
     try {
         console.log(req.body);
-        
+
         await produceMessageToQueue("preview-screen", JSON.stringify(req.body))
         return sendOk(res, "Added to Queue")
     } catch (err) {

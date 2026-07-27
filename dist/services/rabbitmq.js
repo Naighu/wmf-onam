@@ -7,10 +7,11 @@ exports.produceMessageToQueue = exports.connectRabbitMQ = void 0;
 const amqplib_1 = __importDefault(require("amqplib"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
+let channel;
 const connectRabbitMQ = async () => {
     try {
         const connection = await amqplib_1.default.connect(process.env.AMQPURL);
-        const channel = await connection.createChannel();
+        channel = await connection.createChannel();
         console.log('Connected to RabbitMQ');
         return { connection, channel };
     }
@@ -21,7 +22,6 @@ const connectRabbitMQ = async () => {
 };
 exports.connectRabbitMQ = connectRabbitMQ;
 const produceMessageToQueue = async (queue, message) => {
-    const { channel } = await (0, exports.connectRabbitMQ)();
     await channel.assertQueue(queue);
     channel.sendToQueue(queue, Buffer.from(message));
     console.log(`Message sent to ${queue}:`, message);
