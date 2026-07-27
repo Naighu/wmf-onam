@@ -305,7 +305,7 @@ export async function makeParticipantLive(req: Request, res: Response) {
 
         participant.is_live = live;
         if (participant.is_live) {
-            await produceMessageToQueue("competition-live", JSON.stringify(participant))
+            await produceMessageToQueue("competition-live", JSON.stringify([participant]))
         }
 
         await participant.save()

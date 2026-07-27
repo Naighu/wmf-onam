@@ -3,21 +3,12 @@ import cors from "cors";
 
 import { notFound, errorHandler } from "./middlewares/error_handler";
 import routes from "./routes";
-import mongoose from "mongoose";
 import { connectRabbitMQ } from "./services/rabbitmq";
+import { connectDB } from "./services/mongodb";
 
 
 
-let isConnected = false;
 
-export async function connectDB() {
-  if (isConnected) return;
-
-  await mongoose.connect(process.env.MONGODB_URL!);
-
-  isConnected = true;
-  console.log("MongoDB connected");
-}
 connectDB();
 
 connectRabbitMQ()

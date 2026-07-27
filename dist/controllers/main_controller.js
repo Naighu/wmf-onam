@@ -225,6 +225,10 @@ async function updateParticipantMarks(req, res) {
                     marked_by: token
                 }
             });
+            await (0, rabbitmq_1.produceMessageToQueue)("preview-screen", JSON.stringify({
+                type: "mark",
+                mark: marks
+            }));
         }
         return (0, respond_1.sendOk)(res, "Successfully marked the participant");
     }

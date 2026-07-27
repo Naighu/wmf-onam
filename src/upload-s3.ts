@@ -2,9 +2,9 @@ import { connectRabbitMQ } from "./services/rabbitmq";
 import { putObject } from "./services/s3";
 import { promises, readFileSync } from "fs";
 import { randomUUID } from "crypto";
-import { connectDB } from "./app";
 import Gallery from "./model/gallery";
 import { Channel } from "amqplib";
+import { connectDB } from "./services/mongodb";
 
 const connect = async () => {
     const { channel } = await connectRabbitMQ();

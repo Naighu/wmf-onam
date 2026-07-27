@@ -1,10 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const socket_io_client_1 = require("socket.io-client");
-const socket = (0, socket_io_client_1.io)("http://localhost:4019");
+const socket = (0, socket_io_client_1.io)("http://localhost:4019", { extraHeaders: {
+        connection_type: "user",
+        "token": "9PGpDesRzRoiOnJ4Igucw69Z",
+    }, });
 socket.on("connect", () => {
     console.log("Connected:", socket.id);
 });
 socket.on("preview-screen", (data) => {
+    console.log(data);
+});
+socket.on("competition-live", (data) => {
     console.log(data);
 });

@@ -7,8 +7,8 @@ const rabbitmq_1 = require("./services/rabbitmq");
 const s3_1 = require("./services/s3");
 const fs_1 = require("fs");
 const crypto_1 = require("crypto");
-const app_1 = require("./app");
 const gallery_1 = __importDefault(require("./model/gallery"));
+const mongodb_1 = require("./services/mongodb");
 const connect = async () => {
     const { channel } = await (0, rabbitmq_1.connectRabbitMQ)();
     return channel;
@@ -17,7 +17,7 @@ const upload_s3_queue = async (channel) => {
     const queue = "upload-s3";
     await channel.assertQueue(queue, { durable: true });
     console.log(`Waiting for messages in ${queue}...`);
-    await (0, app_1.connectDB)();
+    await (0, mongodb_1.connectDB)();
     channel.consume(queue, async (message) => {
         if (message) {
             try {
