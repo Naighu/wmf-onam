@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUser = getUser;
+exports.getUsers = getUsers;
 exports.getGalleryImages = getGalleryImages;
 exports.updateLikesCount = updateLikesCount;
 exports.uploadGallery = uploadGallery;
@@ -49,14 +50,38 @@ async function getUser(req, res) {
             });
         }
         const email = req.query.email;
-        const user = await user_1.default.findOne({ email: email });
-        if (!user) {
-            throw new error_type_1.AppError("NOT_FOUND", "Could not find the user", undefined);
+        if (email) {
+            const user = await user_1.default.findOne({ email: email });
+            if (!user) {
+                throw new error_type_1.AppError("NOT_FOUND", "Could not find the user", undefined);
+            }
+            const gallery = await gallery_1.default.findOne({ user: user._id });
+            return (0, respond_1.sendOk)(res, {
+                user: user,
+                gallery: gallery
+            });
         }
-        const gallery = await gallery_1.default.findOne({ user: user._id });
+    }
+    catch (err) {
+        if (err instanceof error_type_1.AppError) {
+            throw err;
+        }
+        else {
+            throw new error_type_1.AppError("INTERNAL", err, undefined);
+        }
+    }
+}
+async function getUsers(req, res) {
+    try {
+        const name = req.query.name;
+        const users = await user_1.default.find({ first_name: new RegExp(name, "i") });
+        if (!users || users.length == 0) {
+            throw new error_type_1.AppError("NOT_FOUND", "No Users", undefined);
+        }
+        const galleries = await gallery_1.default.find({ user: { $in: users.map((e) => e._id) } });
         return (0, respond_1.sendOk)(res, {
-            user: user,
-            gallery: gallery
+            user: users,
+            gallery: galleries
         });
     }
     catch (err) {
