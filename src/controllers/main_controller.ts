@@ -44,16 +44,48 @@ export async function getUser(req: Request, res: Response) {
         }
 
         const email = req.query.email;
-        const user = await User.findOne({ email: email as string })
-        if (!user) {
-            throw new AppError("NOT_FOUND", "Could not find the user", undefined);
+        if (email) {
+            const user = await User.findOne({ email: email as string })
+            if (!user) {
+                throw new AppError("NOT_FOUND", "Could not find the user", undefined);
+
+
+            }
+            const gallery = await Gallery.findOne({ user: user!._id })
+            return sendOk(res, {
+                user: user,
+                gallery: gallery
+            });
+        }
+
+
+    } catch (err: any) {
+        if (err instanceof AppError) {
+            throw err;
+        } else {
+            throw new AppError("INTERNAL", err, undefined);
+        }
+    }
+}
+
+
+export async function getUsers(req: Request, res: Response) {
+    try {
+        const name = req.query.name as string
+
+        const users = await User.find({ first_name: new RegExp(name, "i")})
+
+        if (!users || users.length == 0) {
+            throw new AppError("NOT_FOUND", "No Users", undefined);
 
         }
-        const gallery = await Gallery.findOne({ user: user!._id })
+
+        const galleries = await Gallery.find({ user: { $in: users.map((e) => e._id) } })
         return sendOk(res, {
-            user: user,
-            gallery: gallery
+            user: users,
+            gallery: galleries
         });
+
 
 
     } catch (err: any) {
