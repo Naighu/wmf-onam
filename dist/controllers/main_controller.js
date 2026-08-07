@@ -13,6 +13,7 @@ exports.updateParticipantMarks = updateParticipantMarks;
 exports.listParticipants = listParticipants;
 exports.makeParticipantLive = makeParticipantLive;
 exports.previewScreen = previewScreen;
+exports.getLivePariticipants = getLivePariticipants;
 const multiparty = require('multiparty');
 const respond_1 = require("../utils/respond");
 const error_type_1 = require("../types/error.type");
@@ -239,7 +240,7 @@ async function updateParticipantMarks(req, res) {
         }
         const alreadyMarked = participant.marked_by.includes(token);
         if (alreadyMarked) {
-            throw new error_type_1.AppError("VALIDATION_ERROR", "Already Marked", undefined);
+            return (0, respond_1.sendOk)(res, "Already marked the participant");
         }
         else {
             await participant_1.default.updateOne({ _id: participant_id }, {
@@ -309,6 +310,22 @@ async function previewScreen(req, res) {
         console.log(req.body);
         await (0, rabbitmq_1.produceMessageToQueue)("preview-screen", JSON.stringify(req.body));
         return (0, respond_1.sendOk)(res, "Added to Queue");
+    }
+    catch (err) {
+        if (err instanceof error_type_1.AppError) {
+            throw err;
+        }
+        else {
+            throw new error_type_1.AppError("INTERNAL", err, undefined);
+        }
+    }
+}
+async function getLivePariticipants(req, res) {
+    try {
+        const token = req.query.token;
+        const participants = await participant_1.default.find({ is_live: true });
+        const p = participants.filter((e) => !e.marked_by.includes(token));
+        return (0, respond_1.sendOk)(res, p);
     }
     catch (err) {
         if (err instanceof error_type_1.AppError) {

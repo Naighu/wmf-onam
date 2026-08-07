@@ -14,4 +14,5 @@ router.get("/participant", is_admin_1.isAdmin, main_controller_1.listParticipant
 router.post("/marks", main_controller_1.updateParticipantMarks);
 router.get("/make-live/:id", is_admin_1.isAdmin, main_controller_1.makeParticipantLive);
 router.post("/preview-screen", is_admin_1.isAdmin, main_controller_1.previewScreen);
+router.get("/live-participants", main_controller_1.getLivePariticipants);
 exports.default = router;

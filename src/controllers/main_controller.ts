@@ -73,7 +73,7 @@ export async function getUsers(req: Request, res: Response) {
     try {
         const name = req.query.name as string
 
-        const users = await User.find({ first_name: new RegExp(name, "i")})
+        const users = await User.find({ first_name: new RegExp(name, "i") })
 
         if (!users || users.length == 0) {
             throw new AppError("NOT_FOUND", "No Users", undefined);
@@ -279,7 +279,7 @@ export async function updateParticipantMarks(req: Request, res: Response) {
 
 
         if (alreadyMarked) {
-            throw new AppError("VALIDATION_ERROR", "Already Marked", undefined);
+            return sendOk(res, "Already marked the participant")
 
         } else {
             await Participant.updateOne({ _id: participant_id }, {
@@ -359,6 +359,24 @@ export async function previewScreen(req: Request, res: Response) {
 
         await produceMessageToQueue("preview-screen", JSON.stringify(req.body))
         return sendOk(res, "Added to Queue")
+    } catch (err) {
+        if (err instanceof AppError) {
+            throw err;
+        } else {
+            throw new AppError("INTERNAL", err, undefined);
+        }
+    }
+}
+
+export async function getLivePariticipants(req: Request, res: Response) {
+    try {
+
+        const token = req.query.token
+        const participants = await Participant.find({ is_live: true })
+
+        const p = participants.filter((e) => !e.marked_by.includes(token as string))
+
+        return sendOk(res, p)
     } catch (err) {
         if (err instanceof AppError) {
             throw err;
