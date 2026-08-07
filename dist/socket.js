@@ -7,7 +7,6 @@ const express_1 = __importDefault(require("express"));
 const http_1 = require("http");
 const socket_io_1 = require("socket.io");
 const rabbitmq_1 = require("./services/rabbitmq");
-const participant_1 = __importDefault(require("./model/participant"));
 const mongodb_1 = require("./services/mongodb");
 const app = (0, express_1.default)();
 const PORT = Number(process.env.SOCKET_PORT) || 3000;
@@ -23,17 +22,13 @@ const io = new socket_io_1.Server(httpServer, {
 app.get("/", (_, res) => {
     res.send("Socket server is running");
 });
-io.on("connection", (socket) => {
+io.engine.on("connection", (socket) => {
     console.log(`✅ Client connected: ${socket.id}`);
     console.log(`Connected clients: ${io.engine.clientsCount}`);
-    const token = socket.client.request.headers.token;
-    if (token && socket.client.request.headers.connection_type === "user") {
-        participant_1.default.find({ is_live: true }).then((participants) => {
-            const p = participants.filter((e) => !e.marked_by.includes(token));
-            socket.emit(COMPETITION_LIVE_QUEUE, JSON.stringify(p));
-        });
+    const token = socket.request.headers.token;
+    if (token && socket.request.headers["connection-type"] === "user") {
     }
-    else if (socket.client.request.headers.connection_type != "preview-screen") {
+    else if (socket.request.headers["connection-type"] != "preview-screen") {
         socket.disconnect(true);
     }
     socket.on("disconnect", () => {
