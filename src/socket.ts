@@ -22,19 +22,14 @@ app.get("/", (_, res) => {
   res.send("Socket server is running");
 });
 
-io.on("connection", (socket) => {
+io.engine.on("connection", (socket) => {
   console.log(`✅ Client connected: ${socket.id}`);
   console.log(`Connected clients: ${io.engine.clientsCount}`);
-  const token = socket.client.request.headers.token
+  const token = socket.request.headers.token
 
-  if (token && socket.client.request.headers.connection_type === "user") {
-    Participant.find({ is_live: true }).then((participants) => {
-     const p =  participants.filter((e) => !e.marked_by.includes(token as string))
-      socket.emit(COMPETITION_LIVE_QUEUE,JSON.stringify(p))
+  if (token && socket.request.headers["connection-type"] === "user") {
 
-    })
-
-  } else if (socket.client.request.headers.connection_type != "preview-screen") {
+  } else if (socket.request.headers["connection-type"] != "preview-screen") {
     socket.disconnect(true)
   }
 
