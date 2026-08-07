@@ -10,6 +10,7 @@ dotenv_1.default.config();
 let channel;
 const connectRabbitMQ = async () => {
     try {
+        console.log('Connecting to RabbitMQ...');
         const connection = await amqplib_1.default.connect(process.env.AMQPURL);
         channel = await connection.createChannel();
         console.log('Connected to RabbitMQ');

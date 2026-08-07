@@ -75,7 +75,10 @@ async function getUser(req, res) {
 async function getUsers(req, res) {
     try {
         const name = req.query.name;
-        const users = await user_1.default.find({ first_name: new RegExp(name, "i") });
+        const regx = new RegExp(name, "i");
+        const users = await user_1.default.find({
+            $or: [{ first_name: regx }, { family_members: regx }]
+        });
         if (!users || users.length == 0) {
             throw new error_type_1.AppError("NOT_FOUND", "No Users", undefined);
         }
@@ -167,6 +170,7 @@ async function uploadGallery(req, res) {
             const suburb = fields.suburb?.[0];
             const email = fields.email?.[0];
             const mobile = fields.mobile?.[0];
+            const family_members = fields.family_members;
             const paths = [];
             let user = await user_1.default.findOne({
                 email, mobile
@@ -177,7 +181,8 @@ async function uploadGallery(req, res) {
                     last_name,
                     suburb,
                     email,
-                    mobile
+                    mobile,
+                    family_members
                 });
             }
             const uploadDir = path_1.default.join(process.cwd(), "uploads");

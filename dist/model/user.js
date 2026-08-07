@@ -40,7 +40,10 @@ const userSchema = new mongoose_1.Schema({
     last_name: { type: String, maxLength: 30 },
     suburb: { type: String, maxLength: 30 },
     email: { type: String, required: true, validate: [validator_1.isEmail, 'invalid email'] },
-    mobile: { type: String, required: true, validate: [validator_1.isMobilePhone, "Invalid phone number"] }
+    mobile: { type: String, required: true, validate: [validator_1.isMobilePhone, "Invalid phone number"] },
+    family_members: [{
+            type: String
+        }]
 });
 const User = mongoose_1.default.model('Users', userSchema);
 exports.default = User;
