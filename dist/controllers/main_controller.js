@@ -170,7 +170,8 @@ async function uploadGallery(req, res) {
             const suburb = fields.suburb?.[0];
             const email = fields.email?.[0];
             const mobile = fields.mobile?.[0];
-            const family_members = fields.family_members;
+            const family_members = fields.family_members ?? [];
+            family_members.push(`${first_name} ${last_name}`);
             const paths = [];
             let user = await user_1.default.findOne({
                 email, mobile
@@ -196,7 +197,6 @@ async function uploadGallery(req, res) {
                 user_id: user._id,
                 paths: paths
             };
-            console.log(data);
             await (0, rabbitmq_1.produceMessageToQueue)("upload-s3", JSON.stringify(data));
             return (0, respond_1.sendOk)(res, "Added to Queue");
         });

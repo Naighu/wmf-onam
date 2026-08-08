@@ -183,8 +183,8 @@ export async function uploadGallery(req: Request, res: Response) {
             const suburb = fields.suburb?.[0];
             const email = fields.email?.[0];
             const mobile = fields.mobile?.[0];
-            const family_members = fields.family_members
-
+            const family_members = fields.family_members ?? []
+            family_members.push(`${first_name} ${last_name}`)
             const paths = []
 
             let user = await User.findOne({
@@ -216,7 +216,6 @@ export async function uploadGallery(req: Request, res: Response) {
             }
 
 
-            console.log(data);
             await produceMessageToQueue("upload-s3", JSON.stringify(data))
 
 
